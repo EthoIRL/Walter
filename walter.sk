@@ -4,6 +4,85 @@
 options:
     Version: 1.0
 
+# Walter Utilites+
+on join:
+	set {Walter::Utilites::IsDead::%player's uuid%} to false
+
+on death:
+	victim is player
+	set {Walter::Utilites::IsDead::%player's uuid%} to true
+on respawn:
+	set {Walter::Utilites::IsDead::%player's uuid%} to false
+
+on rightclick:
+	if player's tool is ender pearl:
+		set {Walter::Utilites::Enderpearling::%player's uuid%} to true
+on projectile hit:
+	if event-entity is a ender pearl:
+		set {Walter::Utilites::Enderpearling::%event-entity's uuid%} to false
+
+on join:
+	set {Walter::Utilites::JoinTime::%player's uuid%} to now
+
+on damage:
+	victim is player
+	set {Walter::Utilites::LastDamage::%victim's uuid%} to now
+	set {Walter::Utilites::IsAttacked::%victim's uuid%} to true
+	wait 3.25 ticks
+	set {Walter::Utilites::IsAttacked::%victim's uuid%} to false
+
+on place:
+	if event-entity is player:
+		set {Walter::Utilites::LastPlace::%player's uuid%} to now
+
+# Utility Functions
+function IsDead(p: player) :: boolean:
+	set {_uuid} to uuid of {_p}
+	if {Walter::Utilites::IsDead::%{_uuid}%} = true:
+		return true
+	else:
+		return false
+
+function IsEnderpearling(p: player) :: boolean:
+	set {_uuid} to uuid of {_p}
+	if {Walter::Utilites::Enderpearling::%{_uuid}%} = true:
+		return true
+	else:
+		return false
+
+function IsCreative(p: player) :: boolean:
+	if gamemode of {_p} is survival or adventure:
+		return false
+	else:
+		return true
+	return false
+
+function IsJoining(p: player) :: boolean:
+	set {_uuid} to uuid of {_p}
+	if difference between {Walter::Utilites::JoinTime::%{_uuid}%} and now < 1.5 seconds: #8
+		return true
+	else:
+		return false
+
+function IsAttacked(p: player) :: boolean:
+	set {_uuid} to uuid of {_p}
+	if {Walter::Utilites::IsAttacked::%{_uuid}%} = true:
+		return true
+	else:
+		return false
+
+function DistanceToGround(p: player) :: number:
+	loop 256 times:
+		if block loop-numbers below {_p} is not air:
+			set {_A} to loop-numbers
+			remove 1 from {_A}
+			set {_D} to {_p}'s y-coord - {_A}
+			set {_Cw} to abs({_D} - floor({_D}))
+			add {_A} to {_Cw}
+			return {_Cw}
+			exit 1 loop
+	return null
+
 command /Walter:
 	permission: Walter.Anticheat
 	aliases: w
