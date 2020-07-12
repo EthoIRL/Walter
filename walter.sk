@@ -3,3 +3,27 @@
 
 options:
     Version: 1.0
+
+command /Walter:
+	permission: Walter.Anticheat
+	aliases: w
+	trigger:
+		create a gui with virtual chest named "&8&lWalter" with 3 rows:
+			set {_C} to Red Stained Glass pane
+			make gui slot 0 with {_W} named "&r"
+			loop 36 times:
+				if random integer between 1 and 2 = 1:
+					set {_Col} to White Stained Glass pane
+				else:
+					set {_Col} to Brown Stained Glass pane
+				make gui slot loop-value with {_Col} named "&r"
+				if loop-value = 11:
+					make gui slot loop-value with {_C} named "&r":
+						send "Stuffs"
+				if loop-value = 13:
+					make gui slot loop-value with {_C} named "&r":
+						send "More Stuffs"
+				if loop-value = 15:
+					make gui slot loop-value with {_C} named "&r":
+						send "Event More Stuffs"
+		open last gui to the player
