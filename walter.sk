@@ -2,7 +2,51 @@
 # Created By LIWKK (Johannes) and EthoCryantic (Etho)
 
 options:
-    Version: 1.0
+	# [Version] current version of Walter :)
+	Version: 1.0
+
+	# [LagCore] Enable LagCore, LagCore helps prevent false positives by monitoring ticks per second (TPS, We suggest you keep this enabled)
+	LagCore: true
+
+	# [LagCore] Maximum TPS (Not adverage count) the anticheat will allow before registering as lagging E.g(Chunk Loading, Player Joins, New Chunk loading, tnt, etc).
+	LagCore.MaxTPS: 21.85
+
+	# [LagCore] Minimum TPS (Not adverage count) the anticheat will allow before registering as lagging E.g(Chunk Loading, Player Joins, New Chunk loading, tnt, etc).
+	LagCore.MinTPS: 18.15
+
+	# [LagCore] The ammount of time you want neon to stop flagging players when the server lags badly. 6
+	LagCore.SevereLag.timer: 6 seconds
+
+	# [LagCore] The ammount of time you want neon to stop flagging players when the server lags slightly. 3
+	LagCore.MinorLag.timer: 3 seconds
+
+
+#LagCore by Neon (https://forums.skunity.com/resources/neon-anticheat-packet-detections.907/)
+every second:
+	if {@LagCore} = true:
+		if {Walter::LagCore::DisableTimer} != 0 seconds:
+			remove 1 second from {Walter::LagCore::DisableTimer}
+		else:
+			delete {Walter::LagCore::DisableType}
+		add 1 to {Walter::LagCore::Switch}
+		if {Walter::LagCore::Switch} = 1:
+			set {Walter::LagCore::PrevTime} to unix timestamp of now
+		if {Walter::LagCore::Switch} = 2:
+			delete {Walter::LagCore::Switch}
+			set {Walter::LagCore::TPS} to 20 / (unix timestamp of now - {Walter::LagCore::PrevTime})
+			if check [{Walter::LagCore::TPS} > {@LagCore.MaxTPS}] or [{Walter::LagCore::TPS} < {@LagCore.MinTPS}]:
+				if check [{Walter::LagCore::TPS} > 40] or [{Walter::LagCore::TPS} < 10]:
+					if check [{Walter::LagCore::DisableTimer} != 0 seconds]->[{Walter::LagCore::DisableTimer} <= 12 seconds]:
+						add {@LagCore.SevereLag.timer} to {Walter::LagCore::DisableTimer}
+					else:
+						set {Walter::LagCore::DisableTimer} to {@LagCore.SevereLag.timer}
+					set {Walter::LagCore::DisableType} to "S"
+				else:
+					if check [{Walter::LagCore::DisableTimer} != 0 seconds]->[{Walter::LagCore::DisableTimer} <= 9 seconds]:
+						add {@LagCore.MinorLag.timer} to {Walter::LagCore::DisableTimer}
+					else:
+						set {Walter::LagCore::DisableTimer} to {@LagCore.MinorLag.timer}
+					set {Walter::LagCore::DisableType} to "M"
 
 # Walter Utilites+
 on join:
