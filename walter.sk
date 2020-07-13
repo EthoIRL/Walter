@@ -275,6 +275,7 @@ on chat:
 				if {_numb} > 20:
 					send "&a&lMaxTPS &7Value changed successfully! &8(&7OLD: &c&l%{Walter::Settings::LagCore::MaxTPS}%&7,NEW: &a&l%{_numb}%&8)"
 					set {Walter::Settings::LagCore::MaxTPS} to {_numb}
+					delete {Walter::PlayerData::%player's uuid%::Chat::ValueChange}
 		if {Walter::PlayerData::%player's uuid%::Chat::ValueChange} = "MinTPS":
 			if message = "CANCEL" or "cancel":
 				delete {Walter::PlayerData::%player's uuid%::Chat::ValueChange}
@@ -288,6 +289,7 @@ on chat:
 				if {_numb} < 20:
 					send "&a&lMinTPS &7Value changed successfully! &8(&7OLD: &c&l%{Walter::Settings::LagCore::MinTPS}%&7,NEW: &a&l%{_numb}%&8)"
 					set {Walter::Settings::LagCore::MinTPS} to {_numb}
+					delete {Walter::PlayerData::%player's uuid%::Chat::ValueChange}
 		cancel event
 
 
