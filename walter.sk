@@ -96,6 +96,9 @@ on place:
 	if event-entity is player:
 		set {Walter::PlayerData::%player's uuid%::Utilites::LastPlace} to now
 
+on connect:
+	set {Walter::PlayerData::%player's uuid%::Version} to mc version of player
+
 # Utility Functions
 function IsDead(p: player) :: boolean:
 	set {_uuid} to uuid of {_p}
@@ -158,15 +161,9 @@ function OpenMainMenu(p: player):
 				make gui slot loop-value with Redstone named "&lSettings":
 					OpenMenu({_p}, 2)
 			if loop-value = 15:
-				make gui slot loop-value with Head named "&lPlayers":
+				make gui slot loop-value with player's skull named "&lPlayers":
 					OpenMenu({_p}, 3)
-			if loop-value = 10:
-				make gui slot loop-value with {_B} named "&r"
-			if loop-value = 12:
-				make gui slot loop-value with {_B} named "&r"
-			if loop-value = 14:
-				make gui slot loop-value with {_B} named "&r"
-			if loop-value = 16:
+			if loop-value = 10 or 12 or 14 or 16:
 				make gui slot loop-value with {_B} named "&r"
 	open last gui to {_p}
 
@@ -174,6 +171,9 @@ function OpenMainMenu(p: player):
 function OpenMenu(p: player, n: number):
 	set {_W} to White Stained Glass pane
 	set {_B} to Black Stained Glass pane
+	set line 2 of lore of {_B} to "&7<- Previous page"
+	set {_G2} to Green Stained Glass pane
+	set line 2 of lore of {_G2} to "&7Next page ->"
 	set {_R} to Red Stained Glass pane
 	set {_G} to Green Stained Glass pane
 	if {_n} = 1:
@@ -186,18 +186,6 @@ function OpenMenu(p: player, n: number):
 					if loop-value = 11:
 						make gui slot loop-value with {_R} named "Fly"
 					if loop-value = 12:
-						make gui slot loop-value with {_R} named "Fly"
-					if loop-value = 13:
-						make gui slot loop-value with {_R} named "Fly"
-					if loop-value = 14:
-						make gui slot loop-value with {_R} named "Fly"
-					if loop-value = 15:
-						make gui slot loop-value with {_R} named "Fly"
-					if loop-value = 16:
-						make gui slot loop-value with {_R} named "Fly"
-					if loop-value = 19:
-						make gui slot loop-value with {_R} named "Fly"
-					if loop-value = 20:
 						make gui slot loop-value with {_R} named "Fly"
 
 					if loop-value = 35:
@@ -213,7 +201,9 @@ function OpenMenu(p: player, n: number):
 			loop 36 times:
 				if loop-value = 10 or 11 or 12 or 13 or 14 or 15 or 16 or 19 or 20 or 21 or 22 or 23 or 24 or 25 or 27:
 					if loop-value = 10:
-						make gui slot loop-value with {_R} named "LagCore":
+						set {_R2} to Red Stained Glass pane
+						set line 2 of lore of {_R2} to "&7Prevents Lag by monitoring TPS"
+						make gui slot loop-value with {_R2} named "&a&lLagCore":
 							SubMenu({_p}, "LagCore")
 					if loop-value = 27:
 						make gui slot loop-value with {_B} named "&c&lBack":
@@ -221,18 +211,35 @@ function OpenMenu(p: player, n: number):
 				else:
 					make gui slot loop-value with {_W} named "&r"
 	else if {_n} = 3:
-		create a gui with virtual chest named "&7&lWalter &a&lPlayers" with 3 rows:
-			make gui slot 18 with {_B} named "&c&lBack":
-				OpenMainMenu({_p})
-
-			make gui slot 0 with {_W} named "Player1":
-				send "Player1"
-			make gui slot 1 with {_W} named "Player2":
-				send "Player2"
-			make gui slot 2 with {_W} named "Player3":
-				send "Player3"
-			make gui slot 3 with {_W} named "Player4":
-				send "Player4"
+		create a gui with virtual chest named "&7&lWalter &a&lPlayers" with 6 rows:
+			if {Walter::Settings::PlayerGUI::CurrentPlayers::*} is set:
+				delete {Walter::Settings::PlayerGUI::CurrentPlayers::*}
+			loop all players:
+				add 1 to {_PlayerCount}
+				add loop-player-1 to {Walter::Settings::PlayerGUI::CurrentPlayers::*}
+			
+			loop 53 times:
+				if loop-value >= 45:
+					if loop-value = 45:
+						make gui slot 45 with {_B} named "&c&lBack":
+							OpenMainMenu({_p})
+					else:
+						if loop-value = 53:
+							if {_PlayerCount} >= 45:
+								make gui slot loop-value with {_G2} named "&a&lNext":
+									SubMenu({_p}, "Players")
+							else:
+								make gui slot loop-value with {_W} named "&r"
+						else:
+							make gui slot loop-value with {_W} named "&r"
+			
+			set {_count} to 0
+			loop {Walter::Settings::PlayerGUI::CurrentPlayers::*}:
+				if {_count} >= 45:
+					exit 1 loop
+				make gui slot {_count} with loop-value's skull named "&a&l%loop-value%"
+				remove loop-value from {Walter::Settings::PlayerGUI::CurrentPlayers::*}
+				add 1 to {_count}
 	open last gui to {_p}
 
 function SubMenu(p: player, n: String):
@@ -254,7 +261,7 @@ function SubMenu(p: player, n: String):
 							set {_Color1} to Red Stained Glass pane
 							set {_ColorText1} to "&c&l"
 							set {_Text} to "&c&ldisabled"
-						set line 1 of lore of {_Color1} to "&7Description: LagCore helps prevent false positives by monitoring ticks per second"
+						set line 1 of lore of {_Color1} to "&7LagCore helps prevent false positives by monitoring ticks per second"
 						set line 2 of lore of {_Color1} to "&7(TPS, We suggest you keep this enabled)."
 						set line 4 of lore of {_Color1} to "&7Currently: %{_Text}%"
 						make gui slot loop-value with {_Color1} named "%{_ColorText1}%LagCore":
@@ -305,12 +312,56 @@ function SubMenu(p: player, n: String):
 							set {_uuid} to {_p}'s uuid
 							set {Walter::PlayerData::%{_uuid}%::Chat::ValueChange} to "SevereLag"
 							close player's inventory
+					if loop-value = 14:
+						set {_Color1} to Gray Stained Glass pane
+						set {_ColorText1} to "&a&l"
+						set {_Text} to "&a&l%{Walter::Settings::LagCore::MinorLag}%"
+
+						set line 1 of lore of {_Color1} to "&7The ammount of time you want Walter to stop flagging players when the server lags slightly."
+						set line 3 of lore of {_Color1} to "&7Current Value: %{_Text}%" 
+
+						make gui slot loop-value with {_Color1} named "%{_ColorText1}%MinorLag":
+							send "&7Type &c&lCANCEL &7to cancel the value change &8(&7Current Value: %{_Text}%&8)"
+							set {_uuid} to {_p}'s uuid
+							set {Walter::PlayerData::%{_uuid}%::Chat::ValueChange} to "MinorLag"
+							close player's inventory
 					if loop-value = 27:
 						make gui slot loop-value with {_B} named "&c&lBack":
 							OpenMenu({_p}, 2)
 				else:
 					make gui slot loop-value with {_W} named "&r"
+	if {_n} is "Players":
+		create a gui with virtual chest named "&7&lWalter &a&lPlayers &7&lPage 2" with 6 rows:
+			loop all players:
+				add 1 to {_PlayerCount}
+			loop 53 times:
+				if loop-value >= 45:
+					if loop-value = 45:
+						make gui slot 45 with {_B} named "&c&lBack":
+							OpenMainMenu({_p})
+					else:
+						if loop-value = 53:
+							if {_PlayerCount} >= 45:
+								make gui slot loop-value with {_G2} named "&a&lNext":
+									SubMenu({_p}, "Players")
+							else:
+								make gui slot loop-value with {_W} named "&r"
+						else:
+							make gui slot loop-value with {_W} named "&r"
+			set {_count} to 0
+			loop {Walter::Settings::PlayerGUI::CurrentPlayers::*}:
+				make gui slot {_count} with loop-value's skull named "&a&l%loop-value%"
+				remove loop-value from {Walter::Settings::PlayerGUI::CurrentPlayers::*}
+				if {_count} >= 45:
+					stop
+				else:
+					add 1 to {_count}
 	open last gui to {_p}
+
+#function PlayerDataMenu(p: player):
+#	create a gui with virtual chest named "&7&lWalter -> &a&l%{_p}%" with 6 rows:
+#			
+#	open last gui to {_p}
 
 on chat:
 	if {Walter::PlayerData::%player's uuid%::Chat::ValueChange} is set:
@@ -374,6 +425,24 @@ on chat:
 				if {_numb} > 3 seconds:
 					send "&a&lSevereLag &7time value changed successfully!" and "&8(&7OLD: &c&l%{Walter::Settings::LagCore::SevereLag}%&7, NEW: &a&l%{_numb}%&8)"
 					set {Walter::Settings::LagCore::SevereLag} to {_numb}
+					delete {Walter::PlayerData::%player's uuid%::Chat::ValueChange}
+		
+		if {Walter::PlayerData::%player's uuid%::Chat::ValueChange} = "MinorLag":
+			if message = "CANCEL" or "cancel":
+				delete {Walter::PlayerData::%player's uuid%::Chat::ValueChange}
+				send "&c&lCancled &7MinorLag value change!"
+			else:
+				if message contains "seconds":
+					set {_numb} to message parsed as timespan
+				else:
+					set {_numb} to "%message% seconds" parsed as timespan
+				if {_numb} is not set:
+					send "&c&lInvalid &7time &8(&7type &c&lCANCEL&7 to cancel&8)"
+				if {_numb} < 1 seconds:
+					send "&c&lInvalid &7MinorLag time value, cannot be lower than 1 second" and "&8(&7type &c&lCANCEL&7 to cancel&8)"
+				if {_numb} > 1 seconds:
+					send "&a&lMinorLag &7time value changed successfully!" and "&8(&7OLD: &c&l%{Walter::Settings::LagCore::MinorLag}%&7, NEW: &a&l%{_numb}%&8)"
+					set {Walter::Settings::LagCore::MinorLag} to {_numb}
 					delete {Walter::PlayerData::%player's uuid%::Chat::ValueChange}
 		cancel event
 
