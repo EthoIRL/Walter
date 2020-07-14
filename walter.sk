@@ -237,7 +237,9 @@ function OpenMenu(p: player, n: number):
 			loop {Walter::Settings::PlayerGUI::CurrentPlayers::*}:
 				if {_count} >= 45:
 					exit 1 loop
-				make gui slot {_count} with loop-value's skull named "&a&l%loop-value%"
+				set {_value} to loop-value
+				make gui slot {_count} with loop-value's skull named "&a&l%loop-value%":
+					PlayerDataMenu({_p}, {_value}) # Kinda dumb that you can't use loop-value here or else it'll show as <none>
 				remove loop-value from {Walter::Settings::PlayerGUI::CurrentPlayers::*}
 				add 1 to {_count}
 	open last gui to {_p}
@@ -350,7 +352,9 @@ function SubMenu(p: player, n: String):
 							make gui slot loop-value with {_W} named "&r"
 			set {_count} to 0
 			loop {Walter::Settings::PlayerGUI::CurrentPlayers::*}:
-				make gui slot {_count} with loop-value's skull named "&a&l%loop-value%"
+				set {_value} to loop-value
+				make gui slot {_count} with loop-value's skull named "&a&l%loop-value%":
+					PlayerDataMenu({_p}, {_value})
 				remove loop-value from {Walter::Settings::PlayerGUI::CurrentPlayers::*}
 				if {_count} >= 45:
 					stop
@@ -358,10 +362,26 @@ function SubMenu(p: player, n: String):
 					add 1 to {_count}
 	open last gui to {_p}
 
-#function PlayerDataMenu(p: player):
-#	create a gui with virtual chest named "&7&lWalter -> &a&l%{_p}%" with 6 rows:
-#			
-#	open last gui to {_p}
+function PlayerDataMenu(p: player, PlayerData: player):
+	set {_W} to White Stained Glass pane
+	set {_B} to Black Stained Glass pane
+	set {_R} to Red Stained Glass pane
+	set {_G} to Green Stained Glass pane
+	create a gui with virtual chest named "&7&lWalter -> &a&l%{_PlayerData}%" with 6 rows:
+		loop 53 times:
+			if loop-value >= 45:
+				if loop-value = 45:
+					make gui slot 45 with {_B} named "&c&lBack":
+						OpenMenu({_p}, 3)
+				else:
+					make gui slot loop-value with {_W} named "&r"
+			else:
+				if loop-value = 1:
+					set {_PlayerDataUUID} to {_PlayerData}'s uuid
+					set {_R2} to Red Stained Glass pane
+					set line 2 of lore of {_R2} to "&7%{_PlayerData}% is currently running &c&lversion &a&l%{Walter::PlayerData::%{_PlayerDataUUID}%::Version}% &7minecraft!"
+					make gui slot 0 with {_R2} named "&a&lVersion"
+	open last gui to {_p}
 
 on chat:
 	if {Walter::PlayerData::%player's uuid%::Chat::ValueChange} is set:
